@@ -6,6 +6,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.stereotype.Service;
 
+import com.example.springguildbusiness.exceptions.SpringException;
 import com.example.springguildbusiness.model.NotificationEmail;
 
 import lombok.AllArgsConstructor;
@@ -31,7 +32,8 @@ public class MailService {
 			mailSender.send(messagePreparator);
 			log.info("Activation email sent!!!");
 		} catch (MailException e) {
-			// TODO: handle exception
+			throw new SpringException("Exception ocurred when sending mail to"
+							+ notificationEmail.getRecipient(), e);
 		}
 	}
 }
