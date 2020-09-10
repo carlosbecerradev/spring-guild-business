@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.springguildbusiness.dto.RegisterRequest;
+import com.example.springguildbusiness.model.NotificationEmail;
 import com.example.springguildbusiness.model.User;
 import com.example.springguildbusiness.model.VerificationToken;
 import com.example.springguildbusiness.repository.UserRepository;
@@ -22,6 +23,7 @@ public class AuthService {
 	private final PasswordEncoder passwordEncoder;
 	private final UserRepository userRepository;
 	private final VerificationTokenRepository verificationTokenRepository;
+	private final MailService mailService;
 	
 	@Transactional
 	public void signup(RegisterRequest registerRequest) {
@@ -34,7 +36,14 @@ public class AuthService {
 		
 		userRepository.save(user);
 		
-		generateVerificationToken(user);
+		String token = generateVerificationToken(user);
+		mailService.sendMail(new NotificationEmail(
+					"Please Activate your Account",
+					user.getEmail(),
+					"Thank you for signing up to Spring Guild Business, " +
+					"please click on the below url to activate your account: " +
+					"http://localhost:8080/api/auth/accountVerification/" + token
+				));
 	}
 
 	private String generateVerificationToken(User user) {
