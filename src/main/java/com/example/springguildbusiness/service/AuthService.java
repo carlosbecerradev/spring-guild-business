@@ -1,6 +1,7 @@
 package com.example.springguildbusiness.service;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.springguildbusiness.dto.RegisterRequest;
+import com.example.springguildbusiness.exceptions.SpringException;
 import com.example.springguildbusiness.model.NotificationEmail;
 import com.example.springguildbusiness.model.User;
 import com.example.springguildbusiness.model.VerificationToken;
@@ -54,5 +56,20 @@ public class AuthService {
 		
 		verificationTokenRepository.save(verificationToken);
 		return token;
+	}
+
+	public void verifyAccount(String token) {
+		Optional<VerificationToken> verificationToken = verificationTokenRepository.findByToken(token);
+		verificationToken.orElseThrow( () -> new SpringException("Invalid Token") );
+		fetchUserAndEnabled(verificationToken.get());
+	}
+
+	@Transactional
+	private void fetchUserAndEnabled(VerificationToken verificationToken) {
+		String username = verificationToken.getUser().getUsername();
+		User user = userRepository.findByUsername(username)
+			.orElseThrow( () -> new SpringException("User not found with name - " + username));
+		user.setEnabled(true);
+		userRepository.save(user);
 	}
 }
