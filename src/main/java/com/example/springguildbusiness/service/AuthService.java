@@ -4,10 +4,13 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.springguildbusiness.dto.LoginRequest;
 import com.example.springguildbusiness.dto.RegisterRequest;
 import com.example.springguildbusiness.exceptions.SpringException;
 import com.example.springguildbusiness.model.NotificationEmail;
@@ -26,6 +29,7 @@ public class AuthService {
 	private final UserRepository userRepository;
 	private final VerificationTokenRepository verificationTokenRepository;
 	private final MailService mailService;
+	private final AuthenticationManager authenticationManager;
 	
 	@Transactional
 	public void signup(RegisterRequest registerRequest) {
@@ -71,5 +75,11 @@ public class AuthService {
 			.orElseThrow( () -> new SpringException("User not found with name - " + username));
 		user.setEnabled(true);
 		userRepository.save(user);
+	}
+
+	public void login(LoginRequest loginRequest) {
+		authenticationManager.authenticate(
+				new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword())
+			);
 	}
 }
