@@ -6,10 +6,13 @@ import java.util.UUID;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.springguildbusiness.dto.AuthenticationResponse;
 import com.example.springguildbusiness.dto.LoginRequest;
 import com.example.springguildbusiness.dto.RegisterRequest;
 import com.example.springguildbusiness.exceptions.SpringException;
@@ -18,6 +21,7 @@ import com.example.springguildbusiness.model.User;
 import com.example.springguildbusiness.model.VerificationToken;
 import com.example.springguildbusiness.repository.UserRepository;
 import com.example.springguildbusiness.repository.VerificationTokenRepository;
+import com.example.springguildbusiness.security.JwtProvider;
 
 import lombok.AllArgsConstructor;
 
@@ -30,6 +34,7 @@ public class AuthService {
 	private final VerificationTokenRepository verificationTokenRepository;
 	private final MailService mailService;
 	private final AuthenticationManager authenticationManager;
+	private final JwtProvider jwtProvicer;
 	
 	@Transactional
 	public void signup(RegisterRequest registerRequest) {
@@ -77,9 +82,12 @@ public class AuthService {
 		userRepository.save(user);
 	}
 
-	public void login(LoginRequest loginRequest) {
-		authenticationManager.authenticate(
+	public AuthenticationResponse login(LoginRequest loginRequest) {
+		Authentication authenticate = authenticationManager.authenticate(
 				new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword())
 			);
+		SecurityContextHolder.getContext().setAuthentication(authenticate);
+		String token = jwtProvicer.generateToken(authenticate);
+		return new AuthenticationResponse(token, loginRequest.getUsername());
 	}
 }
