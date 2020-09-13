@@ -49,7 +49,7 @@ public class JwtProvider {
 		try {
 			return (PrivateKey) keyStore.getKey("springorder", "spring144".toCharArray());
 		} catch (KeyStoreException | NoSuchAlgorithmException | UnrecoverableKeyException e) {
-			throw new SpringException("Exception ocurred while retrieving public key from keystore", e);
+ 			throw new SpringException("Exception ocurred while retrieving public key from keystore", e);
 		}
 	}
 }
