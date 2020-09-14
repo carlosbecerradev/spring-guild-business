@@ -7,6 +7,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 
@@ -18,7 +19,9 @@ import org.springframework.stereotype.Service;
 
 import com.example.springguildbusiness.exceptions.SpringException;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import static io.jsonwebtoken.Jwts.parser;
 
 @Service
 public class JwtProvider {
@@ -51,5 +54,26 @@ public class JwtProvider {
 		} catch (KeyStoreException | NoSuchAlgorithmException | UnrecoverableKeyException e) {
  			throw new SpringException("Exception ocurred while retrieving public key from keystore", e);
 		}
+	}
+	
+	public boolean validateToken(String jwt) {
+		parser().setSigningKey(getPublicKey()).parseClaimsJws(jwt);
+		return true;
+	}
+
+	private PublicKey getPublicKey() {
+		try {
+			return keyStore.getCertificate("springorder").getPublicKey();
+		} catch (KeyStoreException e) {
+			throw new SpringException("Exception ocurred while " +
+					"retrieving public key from keystore");
+		}
+	}
+	
+	public String getUsernameFromJwt(String jwt) {
+		Claims claims = parser()
+				.setSigningKey(getPublicKey())
+				.parseClaimsJws(jwt).getBody();
+		return claims.getSubject();
 	}
 }
